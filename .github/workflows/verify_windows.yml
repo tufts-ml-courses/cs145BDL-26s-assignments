@@ -26,13 +26,13 @@ jobs:
       - uses: actions/checkout@v2
       # Print what we want to install
       - run: |
-          cat spr_2025f_env.yml
+          cat bdl_2026s_env.yml
       # Micromamba
       - uses: mamba-org/setup-micromamba@v1
         with:
           micromamba-version: '1.5.6-0' # any version from https://github.com/mamba-org/micromamba-releases
-          environment-file: spr_2025f_env.yml
-          environment-name: spr_25f_env
+          environment-file: bdl_2026s_env.yml
+          environment-name: bdl_2026s_env
           init-shell: >-
             bash
           cache-environment: true
@@ -46,3 +46,5 @@ jobs:
           python -c "import numpy; print(numpy.__version__)"
           python -c "import scipy; print(scipy.__version__)"
           python -c "import sklearn; print(sklearn.__version__)"
+          python -c "import jax; print(jax.__version__)"
+          python -c "import torch; print(torch.__version__)"
