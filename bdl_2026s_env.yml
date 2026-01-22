@@ -19,6 +19,6 @@ dependencies:
   - scikit-learn=1.7
   ### Automatic differentiation
   - pip:
-    - jax=0.4
-    - torch=2.2
+    - jax==0.4
+    - torch==2.2
     - nbdev
