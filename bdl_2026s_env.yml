@@ -18,7 +18,10 @@ dependencies:
   ## Machine Learning
   - scikit-learn=1.7
   ### Automatic differentiation
+  - jax=0.7
+  - jaxlib
+  - pytorch::pytorch=2.4
+  - pytorch::cpuonly
+  - pytorch::torchvision
   - pip:
-    - jax=0.4
-    - torch=2.2
     - nbdev
