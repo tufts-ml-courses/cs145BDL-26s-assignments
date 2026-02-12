@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <!-- Required meta tags always come first -->
+  <meta charset="utf-8">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <title>HW2: Bayesian Neural Nets + Hamiltonian Monte Carlo | Bayesian Deep Learning
+</title>
+  <link rel="canonical" href="https://www.cs.tufts.edu/cs/145/2026s/hw2.html">
+
+
+
+  <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  <script src="https://www.cs.tufts.edu/cs/145/2026s/theme/js/icsFormatter.js"></script>
+
+  <link rel="stylesheet" href="https://www.cs.tufts.edu/cs/145/2026s/theme/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://www.cs.tufts.edu/cs/145/2026s/theme/css/font-awesome.min.css">
+  <link rel="stylesheet" href="https://www.cs.tufts.edu/cs/145/2026s/theme/css/pygments/default.min.css">
+  <link rel="stylesheet" href="https://www.cs.tufts.edu/cs/145/2026s/theme/css/style.css">
+  <link rel="stylesheet" href="https://www.cs.tufts.edu/cs/145/2026s/theme/css/custom.css">
+
+
+<meta name="description" content="Status: RELEASED. Due: 11:59p ET on Thu Feb 12, 2026 What to turn in: PDF report: https://www.gradescope.com/courses/1238694/assignments/7611862/ Source code: https://www.gradescope.com/courses/1238694/assignments/7611861/ Questions?: Post to the hw2 topic on the Piazza discussion forum. Jump to: Starter Code …">
+</head>
+
+<body>
+  <header class="header">
+    <nav class="navbar navbar-expand-lg navbar-expand-md navbar-light bg-light">
+    <div class="container">
+    <div class="row display-flex">
+        <div class="col-2 col-sm-2 d-md-none"><!-- hidden if md or lg -->
+        <button type="button" class="navbar-toggler" data-toggle="collapse"
+            data-target="#my_collapsing_navbar"
+            aria-controls="my_collapsing_navbar"
+            aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon mw-100"></span>
+        </button>
+        </div>
+
+        <div class="d-none d-md-block col-md-2">
+          <a href="https://www.cs.tufts.edu/cs/145/2026s/">
+            <img class="img-fluid mw-100" src=https://www.cs.tufts.edu/cs/145/2026s/images/bdl_course_logo.jpg alt="Bayesian Deep Learning">
+          </a>
+        </div>
+
+        <div class="col-10 col-sm-10 col-md-10">
+          <h1 class="text-left" style="word-break:'break-all'">
+            <a href="https://www.cs.tufts.edu/cs/145/2026s/">Bayesian Deep Learning</a>
+          </h1>
+
+          <p class="text-muted text-left d-none d-md-block mw-100">
+            Tufts CS 145 | Bayesian Deep Learning | Spring 2026
+          </p>
+
+
+
+          <div class="collapse navbar-collapse" id="my_collapsing_navbar">
+                <ul class="navbar-nav">
+                  <li class="nav-item text-left">
+                    <a href="index.html">Syllabus</a>
+                  </li>
+                  <li class="nav-item text-left">
+                    <a href="schedule.html">Schedule</a>
+                  </li>
+                  <li class="nav-item text-left">
+                    <a href="assignments.html">Assignments</a>
+                  </li>
+                  <li class="nav-item text-left">
+                    <a href="office_hours.html">Office Hours</a>
+                  </li>
+                  <li class="nav-item text-left">
+                    <a href="resources.html">Resources</a>
+                  </li>
+
+                </ul>
+          </div>
+
+
+        </div>
+
+    </div>
+    </div>
+    </nav>
+
+  </header>
+
+  <div class="main">
+    <div class="container">
+      <h1>HW2: Bayesian Neural Nets + Hamiltonian Monte Carlo
+</h1>
+      <hr>
+<article class="article">
+  <div class="content">
+        <p style="text-align:right">Last modified: 2026-02-05 14:59 </p>
+    <p>Status: <strong>RELEASED.</strong></p>
+<p>Due: 11:59p ET on Thu Feb 12, 2026</p>
+<p>What to turn in:</p>
+<ul>
+<li>PDF report: <a href="https://www.gradescope.com/courses/1238694/assignments/7611862/">https://www.gradescope.com/courses/1238694/assignments/7611862/</a></li>
+<li>Source code: <a href="https://www.gradescope.com/courses/1238694/assignments/7611861/">https://www.gradescope.com/courses/1238694/assignments/7611861/</a></li>
+</ul>
+<p>Questions?: Post to the hw2 topic on the Piazza discussion forum.</p>
+<p>Jump to: <a href="#starter-code">Starter Code </a> &nbsp; <a href="#debugging-tips">Debugging Tips</a> &nbsp; <a href="#problem-0">Problem 0</a> &nbsp; <a href="#problem-1">Problem 1</a> &nbsp; <a href="#problem-2">Problem 2</a> &nbsp; <a href="#problem-3">Problem 3</a> </p>
+<h3>Instructions for Preparing your PDF Report</h3>
+<p>What to turn in: PDF of typeset answers via LaTeX. No handwritten solutions will be accepted, so that grading can be speedy and you get prompt feedback.</p>
+<p>Please use provided LaTeX Template: <a href="https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/hw2_template.tex">https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/hw2_template.tex</a></p>
+<p>Your PDF should include (in order):</p>
+<ul>
+<li>Your full name</li>
+<li><a href="index.html#collaboration">Collaboration statement</a></li>
+<li>Problem 1 a,b,c,d figures and short answers</li>
+<li>Problem 2 a,b,c,d</li>
+<li>Problem 3 a,b,c,d</li>
+</ul>
+<p>When you turn in the PDF to gradescope, <a href="https://www.youtube.com/watch?v=KMPoby5g_nE&amp;feature=youtu.be&amp;t=43">mark each part via the in-browser Gradescope annotation tool</a>)</p>
+<h3>Instructions for CODE submission</h3>
+<p>We have provided starter Jupyter notebook <code>hw2_starter.ipynb</code> as described in the <a href="#starter-code">Starter Code</a> section below.</p>
+<p>You will turn in a completed version of this .ipynb Jupyter notebook file. </p>
+<p>Please DO NOT CHANGE the plot formatting (x axis limits, y axis limits, etc).
+These are designed to help us grade efficiently and hone in rapidly on the content.</p>
+<h2>Overview</h2>
+<p>In this HW2 we pursue the general problem of <strong>Bayesian neural net (BNN) regression</strong>: that is, we'll try solve a regression problem using neural nets, where all unknown weights/biases get a probabilistic treatment rather than being point estimated.</p>
+<p>We'll consider <em>univariate</em> regression, where we try to map "input" scalars <span class="math">\(x \in \mathbb{R}\)</span> to "output" scalars <span class="math">\(y \in \mathbb{R}\)</span>, via a learned function <span class="math">\(f_{\theta}(x)\)</span> parameterized by <span class="math">\(\theta\)</span>.</p>
+<h3>Prediction function and possible architectures</h3>
+<p>To define <span class="math">\(f_{\theta}\)</span>, we consider a feed-forward neural network (multi-layer perceptron) with <span class="math">\(L\)</span> total layers (including the output layer and <span class="math">\(L-1\)</span> hidden layers). We'll index each layer with integer identifier <span class="math">\(\ell \in 1, 2, \ldots \ell, \ldots L\)</span>. </p>
+<p>A general neural network for regression with L total layers will have L-1 hidden layers, each one with different numbers of hidden units. We can specify the size of the hidden network as a list of integers, like this:</p>
+<ul>
+<li><code>[]</code> means there are no hidden layers and no hidden units (equivalent to linear regression)</li>
+<li><code>[5]</code> means there is one hidden layer with 5 units</li>
+<li><code>[5, 3]</code> means there are two hidden layers, the first has 5 units and second has 3 units.</li>
+</ul>
+<p>To understand this specification, note that</p>
+<ul>
+<li>the number of <em>hidden layers</em> (L-1) is equal to the length of the list</li>
+<li>the size of the <span class="math">\(\ell\)</span>-th hidden layer (counting up from 0, 1, ...) is given by the integer at position <span class="math">\(\ell\)</span> in the list.</li>
+</ul>
+<p>In code, we'll call this the architecture (<code>arch</code>) or the number of dimensions per hidden layer (<code>n_dims_per_hidden_list</code>).</p>
+<p>Given a fixed architecture, the total size of variable <span class="math">\(\theta\)</span> is fixed. Remember, <span class="math">\(\theta\)</span> denotes all the weights <span class="math">\(w\)</span> and bias parameters <span class="math">\(b\)</span> of the network.</p>
+<h3>Goals</h3>
+<p>We'll assume we've observed a training set of <span class="math">\(N\)</span> observations:
+<span class="math">\(\{x_n, y_n\}_{n=1}^N\)</span>, where each input <span class="math">\(x_n\)</span> has size 1 and each output <span class="math">\(y_n\)</span> has size 1. </p>
+<p>We'll treat the parameters <span class="math">\(\theta\)</span> and outputs <span class="math">\(y\)</span> as random variables, via the <em>Probabilistic Model for HW2</em> with prior <span class="math">\(p(\theta)\)</span> and likelihood <span class="math">\(p(y | \theta)\)</span> defined below.</p>
+<p>Given the training data, we seek:</p>
+<ul>
+<li>to sample weights from the posterior <span class="math">\(p( \theta | y_{1:N})\)</span></li>
+<li>to make predictions for new inputs <span class="math">\(x_*\)</span> via the posterior predictive <span class="math">\(p( y_* | y_{1:N})\)</span></li>
+</ul>
+<h3>Motivating Application</h3>
+<p>Just like in HW1, here in HW2 we'll use BNNs to model how COVID-19 deaths changed over time in late 2021 in Middlesex County, MA, where Tufts is located.</p>
+<p>Here, we're modeling a function that maps a univariate input (<span class="math">\(D=1\)</span>) to a univariate output.</p>
+<ul>
+<li>
+<p>The input is the number of days before/after December 7, 2021.</p>
+</li>
+<li>
+<p>The the output is the <strong>7-day smoothed average</strong> number of deaths observed on that date. </p>
+</li>
+</ul>
+<p>Here's a look at the available training data, which contains <span class="math">\(N=49\)</span> points from 2021, representing roughly every Monday and Thursday from June to early December</p>
+<div class="container">
+  <div class="row">
+    <div class="col-md-2">
+    </div>
+    <div class="col-md-8">
+      <div class="thumbnail">
+          <img src="images/deaths_per_day_before_after_standardization.png" alt="Deaths per day in Middlesex County, MA in 2021">
+          <div class="caption">
+            <p>LEFT: Observed deaths per day (using 7-day smoothed average) in Middlesex County, Massachusetts. Our goal is to build a good probabilistic model of this data.</p>
+
+            <p>RIGHT: Standardized version of data on the left. Both x and y variables are transformed to have mean of zero and variance of one.</p>
+          </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<p>Data credit: <a href="https://github.com/nytimes/covid-19-data/blob/master/rolling-averages/us-counties-2021.csv">NYTimes Covid-19-data project</a>.</p>
+<p>The raw data is available to you in the provided CSV files in the starter code repo:</p>
+<ul>
+<li><a href="https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/avg_deaths_per_day_in_middlesex_ma_2021__train.csv">avg_deaths_per_day_in_middlesex_ma_2021__train.csv</a></li>
+</ul>
+<p>The starter notebook applies a <strong>standardization</strong> transform so the data is suitable for neural network analysis (see RIGHT panel of figure above).
+Please make sure you are modeling the <strong>standardized</strong> data.</p>
+<h2><a name="starter-code">Starter Code and Coding Policy</a></h2>
+<p>We have provided starter Jupyter notebook <code>hw2_starter.ipynb</code> to help you, here:</p>
+<ul>
+<li>Github-hosted .ipynb: <a href="https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/hw2_starter.ipynb">https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/hw2_starter.ipynb</a></li>
+<li>On Google Colab: <a href="https://colab.research.google.com/github/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/hw2_starter.ipynb">https://colab.research.google.com/github/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/hw2_starter.ipynb</a></li>
+</ul>
+<p>This notebook is the ONLY file you should need to edit.</p>
+<p>Please DO NOT CHANGE the plot formatting (x axis limits, y axis limits, etc), unless the provided window really does not show the result of your code.
+Keeping viewing windows the same helps us grade efficiently and hone in rapidly on the content.</p>
+<p>For all problems, your implementation <strong>should be written from scratch</strong> by you, with any help from others acknowledged per the course <a href="index.html#collaboration">Collaboration Policy</a>.</p>
+<p>We will be unlikely to run your code, but we will possibly <em>read</em> it to help debug/understand, and thus it should be somewhat clear and well-commented.</p>
+<p>We reserve the right to have you reproduce key parts of your code at a whiteboard without references if we have questions about integrity. You should be able to explain any code you turn in, because you must have developed it yourself.</p>
+<p>In the <a href="https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hw2/">hw2 starter code folder</a>, we provide useful functions in a few other files:</p>
+<ul>
+<li>neural_net_regression_model.py</li>
+<li>neural_net_utils.py</li>
+<li>pytree_arithmetic_utils.py</li>
+<li>viz_utils_for_posterior_predictive.py</li>
+</ul>
+<p>You should use these, but you don't need to edit them!
+We do this so that the notebook is not crowded with boilerplate and remains readable.</p>
+<h2><a name="debugging-tips">Debugging Tips</a></h2>
+<p>Here are some tricks to simplify your life if you are having trouble:</p>
+<ul>
+<li>
+<p>If you are having trouble with HMC in Problem 1, see if you can get a simpler random walk Metropolis-Hastings sampler to work as discussed on <a href="https://www.cs.tufts.edu/comp/145/2026s/schedule.html">day05</a>. This should be easier (just a few lines of code), but would let you verify that you understand how to evaluate acceptance probabilities of proposals.</p>
+</li>
+<li>
+<p>We've designed Problem 1 and Problem 2 so that, if correct, both will produce almost <strong>indistinguishable figures</strong> for parts (a) and (b), because they sample from the same distribution. If you are having trouble with Problem 1, you could skip ahead to Problem 2, then come back.</p>
+</li>
+</ul>
+<h2>Technical Background : Neural nets for regression</h2>
+<h3>Prediction function <span class="math">\(f\)</span></h3>
+<p>We can evaluate <span class="math">\(f\)</span> via a series of layers, one after the other.</p>
+<p><strong>Hidden layer 1:</strong> The 1st layer takes input of size <span class="math">\(1\)</span> (because we assume we're doing univariate regression) and produces a vector <span class="math">\(h^{(1)}\)</span> of size <span class="math">\(J^1\)</span>. The parameters of this layer are the weights <span class="math">\(w^{(1)} \in \mathbb{R}^{J^1 \times J^0}\)</span> and the bias <span class="math">\(b^{1} \in \mathbb{R}^{ J^1}\)</span>. </p>
+<p>Each hidden unit of layer one, indexed by <span class="math">\(j\)</span>, produces a scalar value <span class="math">\(h^{(1)}_{j}\)</span> by multiplying the input vector <span class="math">\(x\)</span> by a weight vector, adding a bias, and feeding the resulting scalar through an activation function:</p>
+<div class="math">$$
+h^{(1)}_{j}(x, \theta = (w,b)) = \text{a}\left(
+    b^{(1)}_{j} + \sum_{k=1}^{J^0} w^{(1)}_{j,k} x_{k}
+    \right)
+$$</div>
+<p><strong>Activation function.</strong> 
+Here, we'll assume the activation function <span class="math">\(a\)</span> is <code>tanh</code>, the <strong>hyperbolic tangent function</strong> -- see <a href="https://docs.scipy.org/doc/numpy/reference/generated/numpy.tanh.html">numpy's np.tanh</a>.</p>
+<p><strong>Hidden layers 2, 3, ... L-1:</strong>
+Each other hidden layer (indexed by <span class="math">\(\ell\)</span>), takes input of size <span class="math">\(J^{\ell-1}\)</span> and produces output of size <span class="math">\(J^{\ell}\)</span>. The parameters of this layer are the weights <span class="math">\(w^{(\ell)} \in \mathbb{R}^{J^{\ell} \times J^{\ell-1}}\)</span>, and the bias vector <span class="math">\(b^{\ell} \in \mathbb{R}^{J^\ell}\)</span>.</p>
+<p>Each hidden unit of layer <span class="math">\(\ell\)</span>, indexed by <span class="math">\(j\)</span>, is produced by weight multiplication, adding a bias, then feeding through an activation function:
+</p>
+<div class="math">$$
+h^{(\ell)}_{j}(x, \theta = (w,b)) = \text{a}\left(
+    b^{(\ell)}_{j} + \sum_{k=1}^{J^{(\ell-1)}} w^{(\ell)}_{j,k} h^{(\ell-1)}_{k}(x,w,b)
+    \right)
+$$</div>
+<p><strong>Final output layer:</strong> At the final layer with index <span class="math">\(L\)</span>, we take input of size <span class="math">\(J^{L-1}\)</span> and produce a scalar predicted output. The parameters are weights <span class="math">\(w^{(L)} \in \mathbb{R}^{1 \times J^{L-1}}\)</span> and bias <span class="math">\(b^{(L)} \in \mathbb{R}^{1}\)</span>. </p>
+<p>The scalar output value <span class="math">\(f(x, w, b)\)</span> is given as follows:</p>
+<div class="math">$$
+f(x, \theta = (w, b)) = b^{(L)}_{1} + \sum_{k=1}^{J^{(L-1)}} w^{(L)}_{1, k} h^{(L-1)}_{k}(x,w,b)
+$$</div>
+<p>Note: there is NOT any activation function applied to the output layer, because this is regression, and we desire the output to be any real value.</p>
+<h3>Special case when arch = []</h3>
+<p><strong>Useful special case</strong>: If we set <span class="math">\(L=1\)</span> and arch <code>[]</code>, there are no hidden layers, and our proposed prediction model reduces to <em>univariate linear regression</em>, with just one scalar weight and one scalar bias parameter.</p>
+<p>The prediction function in this special case is:</p>
+<div class="math">$$
+f(x, \theta = (w, b)) = b_1 + w_{1} x \qquad \text{(when no hidden layers)}
+$$</div>
+<h2>Probabilistic Model</h2>
+<p>Our model consists of random variables for:</p>
+<ul>
+<li>\theta : weights and biases</li>
+<li>y : outputs of prediction</li>
+</ul>
+<p>Below we define the prior and likelihood that together form the joint <span class="math">\(p(\theta, y)\)</span>. </p>
+<p>For HMC, we also define auxiliary momentum variables <span class="math">\(\rho\)</span>, such that the expanded joint <span class="math">\(p(\theta, y, \rho)\)</span> has the same distribution over <span class="math">\(\theta, y\)</span> as the original model when we integrate away <span class="math">\(\rho\)</span>. </p>
+<h3>Prior: Beliefs about the weights</h3>
+<p>The prior is a distribution over weights (and biases). </p>
+<p>Across all layers, we will generally assume a simple <em>independent</em> prior for each weight scalar value and bias scalar value, which is Gaussian with mean zero and standard deviation <strong>three</strong>:</p>
+<div class="math">\begin{align}
+p(\theta) = p(w, b) = \prod_{\ell=1}^L
+          \prod_{j=1}^{J^{\ell}} 
+          \prod_{k=1}^{J^{\ell-1}} \mathcal{N}( w^{\ell}_{j,k} | 0, 3^2)
+          \cdot
+          \prod_{\ell=1}^L
+          \prod_{j=1}^{J^\ell}
+            \mathcal{N}( b^{\ell}_j | 0, 3^2)
+\end{align}</div>
+<p>Why standard deviation of 3? Ideally might allow more flexibility, since it is "more uniform" than standard deviation of one, while still keeping weights and biases typically within a reasonable range of (-6, +6), which is +/- 2 standard deviations.</p>
+<h3>Likelihood: Beliefs about outputs given inputs and weights</h3>
+<p>The likelihood is a distribution over the output <span class="math">\(y_n\)</span> (a scalar value) of the regression when given an input <span class="math">\(x_n\)</span> (vector of size D) and some weights and biases.</p>
+<p>We will model a dataset of size <span class="math">\(N\)</span> as having drawn each output independently given its input and the weights. </p>
+<p>Each independent density will be a Gaussian, where the scalar value produced by the feed-foward neural network -- <span class="math">\(f(x_n, w, b)\)</span> -- is the mean:</p>
+<div class="math">\begin{align}
+p( y | \theta) = p(y | w, b) &amp;= \prod_{n=1}^N p(y_n | w, b)
+\\
+    &amp;= \prod_{n=1}^N \mathcal{N}(y_n \mid f(x_n, w, b), \tau^2)
+\end{align}</div>
+<p>where <span class="math">\(\tau\)</span> be a standard deviation hyperparameter. </p>
+<h3>Auxiliary momentum random variables.</h3>
+<p>For HMC, we expand our model by including momentum variables <span class="math">\(\rho\)</span>, with one scalar <span class="math">\(\rho_{j,k}^\ell\)</span> for every weight scalar and one scalar <span class="math">\(\tilde{\rho}_{j}^{\ell}\)</span> for every bias scalar.</p>
+<p>We'll assume a zero-mean, unit-variance distribution over all such variables:</p>
+<div class="math">\begin{align}
+p(\rho) = \prod_{\ell=1}^L
+          \prod_{j=1}^{J^{\ell}} 
+          \prod_{k=1}^{J^{\ell-1}} \mathcal{N}( \rho^{\ell}_{j,k} | 0, 1)
+          \cdot
+          \prod_{\ell=1}^L
+          \prod_{j=1}^{J^\ell}
+            \mathcal{N}( \tilde{\rho}^{\ell}_j | 0, 1)
+\end{align}</div>
+<h2><a name="problem-0">Problem 0: Implementing HMC</a></h2>
+<p>In Problem 0, your goal is to <strong>write an implementation of HMC</strong> that can sample from the <em>posterior</em> over weights and biases given some training data for a regression problem. </p>
+<p>We've provided starter code that should be a nice scaffold.</p>
+<p><em>Instructions</em></p>
+<p>Concretely, you should implement the functions listed under <em>Deliverables</em> below, completing the code in the function body so that the function fulfills the API described in the starter code docstring.</p>
+<p>You'll use these functions (and verify their correctness) in Problem 1 and Problem 3 below.</p>
+<p><em>Useful resources:</em></p>
+<ul>
+<li>Neal's 2011 Chapter on HMC, especially the pseudocode algorithm on Page 14: <a href="https://arxiv.org/pdf/1206.1901.pdf#page=14">https://arxiv.org/pdf/1206.1901.pdf#page=14</a></li>
+</ul>
+<p>You may also refer to existing HMC implementations you find online for high-level understanding, but you <em>must</em> write your own code and be able to defend any code you submit as your original work. </p>
+<p><em>Collaboration with others</em>: Working with a small set of fellow students from this class is encouraged, provided you abide by the <a href="index.html#collaboration">collaboration policy</a> and acknowledge these others in your Collaboration Statement.</p>
+<p><em>Deliverables:</em> For Problem 0, you need to implement several key code routines to implement HMC.</p>
+<ul>
+<li>
+<p><strong>0a.</strong> Implementation of <code>calc_kinetic_energy</code></p>
+</li>
+<li>
+<p><strong>0b.</strong> Implementation of <code>calc_potential_energy</code></p>
+</li>
+<li>
+<p><strong>0c.</strong> Implementation of <code>run_leapfrog_steps_that_conserve_energy</code></p>
+</li>
+<li>
+<p><strong>0d.</strong> Implementation of <code>draw_samples_from_posterior_via_HMC</code></p>
+</li>
+</ul>
+<p>In all cases, make sure your submitted code is readable, ideally with brief comments illuminating your intent.</p>
+<p>You don't need to do anything in the report PDF for Problem 0 directly. The report will include plots and short answers that you'll complete based on this implementation.</p>
+<h2><a name="problem-1">Problem 1: HMC Posterior for arch with zero hidden layers</a></h2>
+<p>Here, you'll try your HMC code on the provided training dataset!</p>
+<p>For simplicity, we'll fix a <em>no hidden layers</em> neural net: <code>arch=[]</code> (we'll relax this in Problem 3, but starting simple is important for debugging).</p>
+<p><em>Implementation Details</em>:</p>
+<ul>
+<li>Fix the observed data to the <strong>standardized</strong> version of data in the training CSV file. </li>
+<li>Fix the BNN architecture to <code>[]</code>, which means 0 hidden units. (Note: this is equivalent to Bayesian linear regression, where you're learning one weight scalar and one bias scalar)</li>
+<li>Use a Normal(mean=0, stddev=3) prior for all weights and biases.</li>
+<li>Use <code>tau=0.5</code> for the likelihood's Gaussian noise level.</li>
+</ul>
+<p><em>Instructions</em>:</p>
+<ol>
+<li>Try several values of the HMC tuning parameters <span class="math">\(\epsilon\)</span> and <span class="math">\(L\)</span> until you find one that delivers desired sampling behavior on this dataset and arch</li>
+<li>Using selected values of <span class="math">\(\epsilon,L\)</span>, run at least 3 chains (runs of HMC started from different random initializations), each for <strong>500</strong> kept samples (after at least 100 burnin iterations) </li>
+</ol>
+<p>Remember to worry about whether each chain has "burned in"; that is, transitioned from a random initialization to the "typical set".</p>
+<p><em>Deliverables:</em> For Problem 1, your report PDF should include:</p>
+<h4>1a. Plot of potential energy vs. sampler iteration</h4>
+<p>This figure has 2 panels (1 row x 2 column), where following the starter code you'll show</p>
+<ul>
+<li>X-axis: Sampler's iteration number (at least 500 iterations)</li>
+<li>Y-axis: Potential energy (aka negative log joint probability)</li>
+<li>First panel (entire history): Show one line for each chain</li>
+<li>Second panel (after burnin): Show one line for each chain, discarding the burnin period</li>
+</ul>
+<p>See the provided <code>plot_potential_energy_of_samples</code> function in Starter Code for details of how to make this figure. You don't need to edit it, but just read thru and understand it.</p>
+<h4>1b. Visualizing posterior predictive over function values and outputs</h4>
+<p>You'll make a figure were each row shows the posterior predictive of the post-burnin samples of <em>one</em> MCMC chain.</p>
+<p>This figure has 2 columns, each showing a way to visualize a posterior predictive.</p>
+<ul>
+<li>Column 1: Show the function implied by 5 samples of weights/biases <span class="math">\(\theta\)</span> from the posterior</li>
+<li>Column 2: Show the distribution over <span class="math">\(y_*\)</span> by plotting the mean and (2.5th, 97.5th) percentile interval empirically computed from all post-burnin <em>samples</em> of <span class="math">\(y_*\)</span> from the posterior predictive</li>
+</ul>
+<p>See the provided <code>show_posterior_predictive_samples_and_intervals</code> function for details of how to make this figure. You don't need to edit it, but just read thru and understand it.</p>
+<h4>1c: Convergence assessment (short answer)</h4>
+<ul>
+<li><strong>Q:</strong> Did your MCMC chains converge to the intended posterior? How can you tell?</li>
+</ul>
+<h4>1d: Tuning assessment (short answer)</h4>
+<ul>
+<li><strong>Q:</strong> How did you set the <code>step_size</code> and <code>n_leapfrog_steps</code> values that control the HMC proposals? What other values did you try? How did you know when a setting was "good enough"? </li>
+</ul>
+<h2><a name="problem-2">Problem 2: Exact Posterior for arch with zero hiddens arch</a></h2>
+<p>Problem 2 is all about <strong>verifying</strong> if your Problem 0-1 implementation is correct.</p>
+<p>We'll rely on the fact that with <code>arch = []</code> (no hiddens), we have closed-form formulas for the posterior over weights and biases under our assumed linear regression model.</p>
+<p>Following the <a href="https://www.cs.tufts.edu/cs/152BDL/2022f/notes/day01-B-BayesLinearRegression%2BKernels.html#Part-3:-Posterior-over-weights-in-closed-form">formulas in the day01-B notes</a>, you can implement closed-form expressions for the Gaussian posterior where the feature transformation function is:</p>
+<div class="math">$$
+\phi(x_i) = [x_i, 1]
+$$</div>
+<p><em>Implementation Details</em>:</p>
+<ul>
+<li>Be sure you use the same prior and likelihood settings as in Problem 1</li>
+</ul>
+<p><em>Instructions</em>:</p>
+<ol>
+<li>Fill in the lines marked <code>#FIXME</code> within the starter notebook to compute <code>post_mean_G, post_covar_GG</code></li>
+<li>Draw 3 "chains" of 500 samples each from the posterior over weights</li>
+</ol>
+<p><em>Deliverables:</em> For Problem 2, your report PDF should include:</p>
+<h4>2a. Plot of potential energy vs. sample iteration</h4>
+<p>This plot should look similar to Fig 1a from Problem 1. Follow the starter notebook.</p>
+<h4>2b. Visualizing posterior predictive over function values and outputs</h4>
+<p>This plot should look similar to Fig 1b from Problem 1. Follow the starter notebook.</p>
+<h4>2c: HMC vs Exact (short answer)</h4>
+<ul>
+<li><strong>Q:</strong> Do your samples from HMC match the exact posterior? How can you tell?</li>
+</ul>
+<h4>2d: Purpose of standardization (short answer)</h4>
+<ul>
+<li><strong>Q:</strong> Why do we use a <strong>standardized</strong> version of the data? What's the value of standardizing the x? What's the value of standardizing the y?</li>
+</ul>
+<h2><a name="problem-3">Problem 3: HMC Posterior for arch with 64 hiddens</a></h2>
+<p>Now for the fun part! Your HMC implementation is hopefully working well, so we can fit a non-linear, flexible model to the provided dataset!</p>
+<p>For problem 3, set your architecture to <code>[64]</code> (one hidden layer of 64 units).</p>
+<p><em>Implementation Details</em>:</p>
+<ul>
+<li>Fix the observed data to the same standardized version as in Problem 1</li>
+<li>Use a Normal(mean=0, stddev=3) prior for all weights and biases, as in Problem 1</li>
+<li>Use <code>tau=0.25</code> for the likelihood's Gaussian noise level, <em>a smaller value than problem 1</em></li>
+</ul>
+<p><em>Instructions</em>:</p>
+<ol>
+<li>Try several values of the HMC tuning parameters <span class="math">\(\epsilon\)</span> and <span class="math">\(L\)</span> until you find one that delivers desired sampling behavior on this dataset and arch</li>
+<li>Using selected values of <span class="math">\(\epsilon,L\)</span>, run at least 3 chains (runs of HMC started from different random initializations), each for <strong>at least 10,000</strong> burnin iterations and then keep <strong>2,000 samples</strong></li>
+</ol>
+<p>Remember to worry about whether each chain has "burned in"; that is, transitioned from a random initialization to the "typical set".</p>
+<p><em>Deliverables:</em> For Problem 3, your report PDF should include:</p>
+<h4>3a. Plot of potential energy vs. sampler iteration</h4>
+<p>Again, a plot of the same style as Fig 1a from Problem 1. Follow starter code.</p>
+<h4>3b. Visualizing posterior predictive over function values and outputs</h4>
+<p>Again, a plot of the same style as Fig 1b from Problem 1. Follow starter code.</p>
+<h4>3c: Convergence assessment (short answer)</h4>
+<ul>
+<li><strong>Q:</strong> Did each of your MCMC chains converge to the intended posterior? How can you tell?</li>
+</ul>
+<h4>3d: Tuning assessment (short answer)</h4>
+<ul>
+<li><strong>Q:</strong> How did you set the <code>step_size</code> and <code>n_leapfrog_steps</code> values that control the HMC proposals? How did you know when a setting was "good enough"? What else did you try?</li>
+</ul>
+<script type="text/javascript">if (!document.getElementById('mathjaxscript_pelican_#%@#$@#')) {
+    var align = "center",
+        indent = "0em",
+        linebreak = "false";
+
+    if (false) {
+        align = (screen.width < 768) ? "left" : align;
+        indent = (screen.width < 768) ? "0em" : indent;
+        linebreak = (screen.width < 768) ? 'true' : linebreak;
+    }
+
+    var mathjaxscript = document.createElement('script');
+    mathjaxscript.id = 'mathjaxscript_pelican_#%@#$@#';
+    mathjaxscript.type = 'text/javascript';
+    mathjaxscript.src = 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.3/latest.js?config=TeX-AMS-MML_HTMLorMML';
+
+    var configscript = document.createElement('script');
+    configscript.type = 'text/x-mathjax-config';
+    configscript[(window.opera ? "innerHTML" : "text")] =
+        "MathJax.Hub.Config({" +
+        "    config: ['MMLorHTML.js']," +
+        "    TeX: { extensions: ['AMSmath.js','AMSsymbols.js','noErrors.js','noUndefined.js'], equationNumbers: { autoNumber: 'none' } }," +
+        "    jax: ['input/TeX','input/MathML','output/HTML-CSS']," +
+        "    extensions: ['tex2jax.js','mml2jax.js','MathMenu.js','MathZoom.js']," +
+        "    displayAlign: '"+ align +"'," +
+        "    displayIndent: '"+ indent +"'," +
+        "    showMathMenu: true," +
+        "    messageStyle: 'normal'," +
+        "    tex2jax: { " +
+        "        inlineMath: [ ['\\\\(','\\\\)'] ], " +
+        "        displayMath: [ ['$$','$$'] ]," +
+        "        processEscapes: true," +
+        "        preview: 'TeX'," +
+        "    }, " +
+        "    'HTML-CSS': { " +
+        "        availableFonts: ['STIX', 'TeX']," +
+        "        preferredFont: 'STIX'," +
+        "        styles: { '.MathJax_Display, .MathJax .mo, .MathJax .mi, .MathJax .mn': {color: 'black ! important'} }," +
+        "        linebreaks: { automatic: "+ linebreak +", width: '90% container' }," +
+        "    }, " +
+        "}); " +
+        "if ('default' !== 'default') {" +
+            "MathJax.Hub.Register.StartupHook('HTML-CSS Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax['HTML-CSS'].FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+            "MathJax.Hub.Register.StartupHook('SVG Jax Ready',function () {" +
+                "var VARIANT = MathJax.OutputJax.SVG.FONTDATA.VARIANT;" +
+                "VARIANT['normal'].fonts.unshift('MathJax_default');" +
+                "VARIANT['bold'].fonts.unshift('MathJax_default-bold');" +
+                "VARIANT['italic'].fonts.unshift('MathJax_default-italic');" +
+                "VARIANT['-tex-mathit'].fonts.unshift('MathJax_default-italic');" +
+            "});" +
+        "}";
+
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(configscript);
+    (document.body || document.getElementsByTagName('head')[0]).appendChild(mathjaxscript);
+}
+</script>
+  </div>
+</article>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="row">
+       <ul class="col-sm-6 list-inline">
+
+
+
+        </ul>
+        <p class="col-sm-6 text-sm-right text-muted">
+          MIT License
+          /
+          <a href="https://github.com/tufts-ml/tufts_ml_website">
+          Source on github
+          </a>
+          /
+          <a href="https://github.com/getpelican/pelican" target="_blank">Powered by Pelican</a>
+          /
+          <a href="https://github.com/nairobilug/pelican-alchemy" target="_blank">&#x2728;</a>
+        </p>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>
