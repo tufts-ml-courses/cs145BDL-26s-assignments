@@ -15,7 +15,7 @@ from torch.nn import functional as F
 class VariationalAutoencoder(nn.Module):
     def __init__(
             self,
-            q_sigma=0.2,
+            q_sigma=0.05,
             n_dims_code=2,
             n_dims_data=400,
             hidden_layer_sizes=[32]):

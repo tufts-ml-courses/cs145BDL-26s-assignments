@@ -139,8 +139,8 @@ if __name__ == "__main__":
     parser.add_argument(
         '--filename_prefix', type=str, default='AE-arch=$hidden_layer_sizes-lr=$lr')
     parser.add_argument(
-        '--q_sigma', type=float, default=0.1,
-        help='Fixed variance of approximate posterior (default: 0.1)')
+        '--q_sigma', type=float, default=0.05,
+        help='Fixed variance of approximate posterior (default: 0.05)')
     parser.add_argument(
        '--n_mc_samples', type=int, default=1,
        help='Number of Monte Carlo samples (default: 1)')
