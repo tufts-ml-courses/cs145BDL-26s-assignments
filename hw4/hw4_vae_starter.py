@@ -146,7 +146,7 @@ class VariationalAutoencoder(nn.Module):
         This object's internal parameters are updated
         '''
         self.train() # mark as ready for training
-        n_train = train_loader.dataset.size
+        n_train = train_loader.dataset.data.shape[0]
         n_batch = len(train_loader)
         loss_per_batch = np.zeros(n_batch)
         num_batch_before_print = int(np.ceil(n_batch/5))
@@ -173,9 +173,6 @@ class VariationalAutoencoder(nn.Module):
 
             # Take an optimization step (gradient descent step)
             optimizer.step() # side-effect: updates internals of self's model!
-
-            # Update total num images seen this epoch
-            n_seen += batch_x_ND.shape[0]
 
             # Done with this batch. Write a progress update to stdout, move on.
             is_last = batch_idx + 1 == len(train_loader)

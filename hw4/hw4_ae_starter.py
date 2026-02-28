@@ -131,9 +131,6 @@ class Autoencoder(nn.Module):
             # Take an optimization step (gradient descent step)
             optimizer.step() # side-effect: updates internals of self's model!
 
-            # Update total num images seen this epoch
-            n_seen += batch_x_ND.shape[0]
-
             # Done with this batch. Write a progress update to stdout, move on.
             is_last = batch_idx + 1 == len(train_loader)
             if (batch_idx + 1) % num_batch_before_print  == 0 or is_last:
