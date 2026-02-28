@@ -108,17 +108,15 @@ class VariationalAutoencoder(nn.Module):
         xproba_ND = cur_arr
         return xproba_ND
 
-    def calc_vi_loss(self, x_ND, n_mc_samples=1, n_train=None):
+    def calc_vi_loss(self, x_ND, n_mc_samples=1, do_rescale=None):
         total_loss = 0.0
         mu_NC = self.encode(x_ND)
 
-        D = x_ND.shape[1]
-        if n_train is None:
+        N, D = x_ND.shape
+        if do_rescale is None:
             Pbatch = 1.0
-            Ptrain = 1.0
         else:
-            Pbatch = float(x_ND.shape[0]) * D
-            Ptrain = float(n_train) * D
+            Pbatch = N * D
 
         for ss in range(n_mc_samples):
             sample_z_NC = self.draw_sample_from_q(mu_NC)
@@ -128,10 +126,10 @@ class VariationalAutoencoder(nn.Module):
             # KL divergence from q(mu, sigma) to prior (std normal)
             # see Appendix B from VAE paper
             # https://arxiv.org/pdf/1312.6114.pdf
-            kl = torch.sum(sample_z_NC)                  # TODO FIXME
-            total_loss += sample_bce_loss / Pbatch + kl / Ptrain
+            kl = torch.sum(sample_z_NC)                   # TODO FIXME
+            total_loss += sample_bce_loss + kl
 
-        return total_loss / float(n_mc_samples), sample_xproba_ND
+        return total_loss / float(Pbatch * n_mc_samples), sample_xproba_ND
 
 
     def train_for_one_epoch_of_gradient_update_steps(
@@ -146,7 +144,6 @@ class VariationalAutoencoder(nn.Module):
         This object's internal parameters are updated
         '''
         self.train() # mark as ready for training
-        n_train = train_loader.dataset.data.shape[0]
         n_batch = len(train_loader)
         loss_per_batch = np.zeros(n_batch)
         num_batch_before_print = int(np.ceil(n_batch/5))
@@ -162,7 +159,7 @@ class VariationalAutoencoder(nn.Module):
             loss, batch_xproba_ND = self.calc_vi_loss(
                 batch_x_ND,
                 n_mc_samples=args.n_mc_samples,
-                n_train=n_train)
+                do_rescale=True)
 
             # Track loss over all batches
             loss_per_batch[batch_idx] = loss.item()
