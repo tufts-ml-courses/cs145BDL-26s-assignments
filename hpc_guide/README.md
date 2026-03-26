@@ -5,9 +5,9 @@
 We'd like to train an autoencoder (AE), just like in BDL class HW4:
 
 * [HW4 Instructions](https://www.cs.tufts.edu/cs/145/2026s/assignments/hw4.html)
-* [HW4 Starter Code](https://www.cs.tufts.edu/cs/145/2026s/assignments/hw4.html)
+* [HW4 Starter Code](https://github.com/tufts-ml-courses/cs145BDL-26s-assignments)
 
-Recall that we had a script, `hw4_ae_starter.py`, we could use like this:
+Recall that we had a script, `hw4_training_on_mnist.py`, we could use like this:
 
 ```
 $ python hw4_training_on_mnist.py --help
@@ -29,7 +29,7 @@ $ python hw4_training_on_mnist.py --help
 
 Learning is sensitive to several algorithmic hyperparameters we can specify as options to this script.
 
-We're interested in exploring several settings:
+Here, we're interested in exploring several settings:
 
 * learning rate (lr) of 0.001, 0.010, and 0.100
 * number of hidden units of 032 and 512
@@ -47,11 +47,9 @@ But this is boring! Let's use the cluster to run all 6 jobs (2 lr settings, 3 ar
 
 ### Step 2: Create a "do_experiment.slurm" script to perform our work
 
-Take a look at [do_experiment_hw4_ae.slurm](https://github.com/tufts-ml/cs145BDL-26s-assignments/blob/main/hpc_guide/do_experiment_hw4_ae.slurm)
+Take a look at [do_experiment_hw4_ae.slurm](https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hpc_guide/do_experiment_hw4_ae.slurm)
 
-You'll see it's like a standard shell script, but with an unusual header (lines that start with '#')
-
-The main body should look familiar: we just call `hw4_training_on_mnist.py` with passed in arguments.
+You'll see it's like a standard shell script, but with an unusual header (lines that start with '#'). The main body should look familiar: we just call `hw4_training_on_mnist.py` with some passed in arguments.
 
 We can ignore the header for now. Try it out! It's just like any shell script:
 
@@ -59,20 +57,18 @@ We can ignore the header for now. Try it out! It's just like any shell script:
 $ lr=0.001 hidden_layer_sizes=032 bash do_experiment_hw4_ae.slurm
 ```
 
-**NB: provide all environment variables BEFORE the call to `bash do_experiment.slurm`, not after.**
+**NB: For bash scripts, provide all environment variables BEFORE the call, not after.**
 
 EXPECTED OUT:
 
 ```
-Saving with prefix: mydemo
-==== evaluation after epoch 0
-Total images 60000. Total on pixels: 6221431. Frac pixels on: 0.132
-  epoch   0  train loss 0.701  bce 0.701  l1 0.502
-Total images 10000. Total on pixels: 1052359. Frac pixels on: 0.134
-  epoch   0  test  loss 0.701  bce 0.701  l1 0.502
+train data: 20000 images. Total pixels on: 2018998. Frac pixels on: 0.129
+  epoch   0  on train per-pixel VI-loss 0.711  bce 0.702  l1 0.501
+test data: 10000 images. Total pixels on: 1018438. Frac pixels on: 0.130
+  epoch   0  on test  per-pixel VI-loss 0.712  bce 0.703  l1 0.501
 ====  done with eval at epoch 0
-  epoch   1 | frac_seen 0.100 | avg loss 4.824e-03 | batch loss  2.844e-03 | batch l1  0.185
-  epoch   1 | frac_seen 0.200 | avg loss 3.768e-03 | batch loss  2.659e-03 | batch l1  0.175
+  epoch   1 | frac_seen 0.20 | avg loss  0.5068 | batch loss  0.4693 | batch l1  0.318
+  epoch   1 | frac_seen 0.40 | avg loss  0.4946 | batch loss  0.4617 | batch l1  0.316
 ...
 ```
 
@@ -86,21 +82,27 @@ Look at the header:
 #SBATCH -t 0-03:00          # Runtime in D-HH:MM
 #SBATCH -p batch            # Partition to submit to
 #SBATCH --mem-per-cpu 3000  # Memory (in MB) per cpu
-#SBATCH -o ae_%j.out
-#SBATCH -e ae_%j.err
+#SBATCH -o log_ae_%j.out
+#SBATCH -e log_ae_%j.err
 #SBATCH --export=ALL
 ```
-All this says that that when we request a job, we want 4 cores and to run for at most 3 hours, and use at most 3GB (3000 MB) of RAM.
+
+These settings say that when we request a job, we want 4 cores and to run for at most 3 hours, and use at most 3GB (3000 MB) of RAM.
+
+The `--export=ALL` makes sure all environment variables are passed along. This includes the PATH and MAMBA_EXE from our [HPC First Time Setup instructions](https://www.cs.tufts.edu/comp/145/2026s/tufts_hpc_setup.html#first-time-setup) which are critical to our python env.
 
 
 ### Step 3: Try out a single job submission via 'sbatch'
 
-Once we have our do_experiment.slurm script, we can **submit** it to the job scheduler via this command:
+Once we have our 'do_experiment' script, we can **submit** it to the job scheduler via this command:
 
 ```
 $ lr=0.01 hidden_layer_sizes=32 sbatch < do_experiment_hw4_ae.slurm
 ```
-Note: the env var arguments need to go FIRST when calling sbatch.
+Notes:
+
+* sbatch reads in from a text file, so the `<` is important. [More info on '<'](https://unix.stackexchange.com/questions/283374/what-does-the-left-chevron-triangle-bracket-do)
+* env var arguments need to go FIRST when calling sbatch.
 
 EXPECTED OUTPUT:
 ```
@@ -116,9 +118,9 @@ EXPECTED OUTPUT:
 ```
              JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
           34740124     batch   sbatch mhughe02  R       1:24      1 m3n46
-          34740078 interacti     bash mhughe02  R    1:10:58      1 alpha001
+          34740078     batch     bash mhughe02  R    1:10:58      1 alpha001
 ```
-If you see status of 'R' and a nodelist that looks like 'm3n46', then congrats! Your job is running!
+If you see status of 'R' then congrats! Your job is running!
 
 You might alternatively see a status like 'PENDING' if the queue is very busy. Be patient!
 
@@ -130,70 +132,78 @@ You can also look at the log_JOBID.out and log_JOBID.err log files, which are ca
 
 ```
 $ cat log_34740124.out
-Saving with prefix: mydemo
+...
+MNIST train data : 60000 binary images with raw shape (28,28).
+Requested batch_size 100, so each epoch consists of 600 updates
 ==== evaluation after epoch 0
-Total images 60000. Total on pixels: 6221431. Frac pixels on: 0.132
-  epoch   0  train loss 0.701  bce 0.701  l1 0.502
-Total images 10000. Total on pixels: 1052359. Frac pixels on: 0.134
-  epoch   0  test  loss 0.701  bce 0.701  l1 0.502
+train data: 20000 images. Total pixels on: 2018998. Frac pixels on: 0.129
+  epoch   0  on train per-pixel VI-loss 0.708  bce 0.696  l1 0.500
+test data: 10000 images. Total pixels on: 1018438. Frac pixels on: 0.130
+  epoch   0  on test  per-pixel VI-loss 0.708  bce 0.695  l1 0.500
 ====  done with eval at epoch 0
-  epoch   1 | frac_seen 0.100 | avg loss 2.989e-03 | batch loss  2.405e-03 | batch l1  0.159
-  epoch   1 | frac_seen 0.200 | avg loss 2.672e-03 | batch loss  2.254e-03 | batch l1  0.147
+  epoch   1 | frac_seen 0.20 | avg loss  0.4286 | batch loss  0.3793 | batch l1  0.253
+  epoch   1 | frac_seen 0.40 | avg loss  0.4052 | batch loss  0.3822 | batch l1  0.254
+  epoch   1 | frac_seen 0.60 | avg loss  0.3951 | batch loss  0.3608 | batch l1  0.243
+  epoch   1 | frac_seen 0.80 | avg loss  0.3881 | batch loss  0.3738 | batch l1  0.246
+  epoch   1 | frac_seen 1.00 | avg loss  0.3833 | batch loss  0.3661 | batch l1  0.240
+==== evaluation after epoch 1
+  epoch   1  on train per-pixel VI-loss 0.397  bce 0.363  l1 0.240
+
 ...
 ```
 
 ### Step 3: How to launch many jobs at once
 
 We'll need two scripts:
-* one to loop over all settings [launch_experiments.sh](https://github.com/tufts-ml/comp150_bdl_2018f_public/blob/master/hpc_example/launch_experiments.sh)
-* one to do the work at each setting [do_experiment.slurm](https://github.com/tufts-ml/comp150_bdl_2018f_public/blob/master/hpc_example/do_experiment.slurm)
+* one to loop over all settings [loop_many_experiments.sh](https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hpc_guide/loop_many_experiments_hw4_ae.sh)
+* one to do the work at each setting [do_experiment.slurm](https://github.com/tufts-ml-courses/cs145BDL-26s-assignments/blob/main/hpc_guide/do_experiment_hw4_ae.slurm)
 
-
-Our desired end behavior is to just call the "launch_experiments.sh" script with a desired action:
+Our desired end behavior is to just call the "loop_many_experiments_hw4_ae.sh" script with a desired action:
 ```
-$ bash launch_experiments.sh list      ## Just list out the settings we'll explore
-$ bash launch_experiments.sh run_here  ## Run each setting one-at-a-time here in this terminal (useful for debugging)
-$ bash launch_experiments.sh submit    ## Send the work to the HPC cluster to be scheduled, via 'sbatch'
+$ bash loop_many_experiments_hw4_ae.sh list      ## Just list out settings we'll explore
+$ bash loop_many_experiments_hw4_ae.sh run_here  ## Run only first job here in this terminal (useful for debugging)
+$ bash loop_many_experiments_hw4_ae.sh submit    ## Send the work to the HPC cluster to be scheduled, via 'sbatch'
 ```
 
 As a test, please try the first command at your terminal. Don't try the others just yet.
 
 ```
 $ bash launch_experiments.sh
-lr=0.001  hidden_layer_sizes=032
-lr=0.001  hidden_layer_sizes=128
-lr=0.001  hidden_layer_sizes=512
-lr=0.010  hidden_layer_sizes=032
-lr=0.010  hidden_layer_sizes=128
-lr=0.010  hidden_layer_sizes=512
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.001-arch=512
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.010-arch=512
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.100-arch=512
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.001-arch=032
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.010-arch=032
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.100-arch=032
 ```
 
-Great! It's listing out all the settings we want to experiment with.
+Great! It's listing out all the settings we want to experiment with, and where it will save the results!
 
-If you peek at launch_experiment.sh, you'll see that we:
+If you peek at loop_many_experiments.sh, you'll see that we:
+
 * loop over all settings of the variables
-* at each one call do_experiment.sh 
+* at each one call `do_experiment.slurm`
 
-Note that we are using [Environment Variables](https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps) to store and pass information between the two scripts.
+This loop uses [Unix Environment Variables](https://www.digitalocean.com/community/tutorials/how-to-read-and-set-environmental-and-shell-variables-on-a-linux-vps) to store and pass information between the two scripts.
 
 There's a simple IF statement that controls whether we call bash and run locally (action='run_here') or call sbatch and let the grid do the work (action='submit').
 
 OK, so let's try it! 
 
 ```
-$ bash launch_experiments.sh submit
-lr=0.001  hidden_layer_sizes=032
+$ bash loop_many_experiments_hw4_ae.sh submit
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.001-arch=512
 Submitted batch job 34740131
-lr=0.001  hidden_layer_sizes=128
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.010-arch=512
 Submitted batch job 34740132
-lr=0.001  hidden_layer_sizes=512
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.100-arch=512
 Submitted batch job 34740133
-lr=0.010  hidden_layer_sizes=032
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.001-arch=032
 Submitted batch job 34740134
-lr=0.010  hidden_layer_sizes=128
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.010-arch=032
 Submitted batch job 34740135
-lr=0.010  hidden_layer_sizes=512
+/cluster/tufts/c26sp1cs0145/$USER//hw4-2026-AE-lr=0.100-arch=032
 Submitted batch job 34740136
 ```
 
-Tada! You've submitted your first set of batch jobs!
+Tada! You've submitted your first set of batch jobs! Now go get a coffee and let the machines work for you.
