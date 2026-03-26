@@ -11,7 +11,12 @@
 export MKL_NUM_THREADS=4
 export OMP_NUM_THREADS=4
 
-python hw4_training_on_mnist.py \
+if [[ -z $filename_prefix ]]; then
+    filename_prefix="AE-lr=$lr-hidden_layer_sizes=$hidden_layer_sizes"
+fi
+
+python -u hw4_training_on_mnist.py \
     --method 'AE' \
     --lr $lr \
-    --hidden_layer_sizes $hidden_layer_sizes
+    --hidden_layer_sizes $hidden_layer_sizes \
+    --filename_prefix $filename_prefix
