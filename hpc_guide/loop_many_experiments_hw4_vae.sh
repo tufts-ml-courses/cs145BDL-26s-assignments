@@ -11,6 +11,14 @@ else
     ACTION_NAME=$1
 fi
 
+# Verify environment set up properly
+hastorch=`which python && python -c 'import torch'`
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: Python environment not setup. Review this guide:"
+    echo "https://www.cs.tufts.edu/comp/145/2026s/tufts_hpc_setup.html#first-time-setup"
+    exit
+fi
+
 export SAVEDIR=/cluster/tufts/c26sp1cs0145/$USER/
 export n_epochs=400
 export q_sigma=0.05
@@ -33,11 +41,12 @@ do
     ## NOTE all env vars that have been 'export'-ed will be passed along
     if [[ $ACTION_NAME == 'submit' ]]; then
         ## Use this line to submit the experiment to the batch scheduler
-        sbatch < do_experiment_hw4_ae.slurm
+        sbatch < do_experiment_hw4_VAE.slurm
     
     elif [[ $ACTION_NAME == 'run_here' ]]; then
         ## Use this line to just run interactively
-        bash do_experiment_hw4_ae.slurm
+        bash do_experiment_hw4_VAE.slurm
+        exit
     fi
 
 done
