@@ -14,9 +14,4 @@ export OMP_NUM_THREADS=4
 python hw4_training_on_mnist.py \
     --method 'AE' \
     --lr $lr \
-    --batch_size $batch_size \
-    --q_sigma $q_sigma \
-    --hidden_layer_sizes $hidden_layer_sizes \
-    --n_mc_samples $n_mc_samples \
-    --filename_prefix $filename_prefix \
-    --n_epochs $n_epochs
+    --hidden_layer_sizes $hidden_layer_sizes
