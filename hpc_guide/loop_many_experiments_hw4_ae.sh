@@ -34,7 +34,7 @@ do
     export batch_size=$batch_size
     export lr=$lr
 
-    export filename_prefix="$SAVEDIR/hw4-2026-AE-adam-batch_size=$batch_size-lr=$lr-arch=$hidden_layer_sizes-q_sigma=$q_sigma"
+    export filename_prefix="$SAVEDIR/hw4-2026-AE-lr=$lr-arch=$hidden_layer_sizes"
     ## Use this line to see where you are in the loop
     echo "$filename_prefix"
 
